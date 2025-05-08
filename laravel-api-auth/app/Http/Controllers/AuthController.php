@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Class\ApiResponseClass;
@@ -12,6 +13,7 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\Auth\ResendVerificationEmailService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -53,12 +55,22 @@ class AuthController extends Controller
     {
         $userIdentifier = $request->input('email');
         $user = User::where('email', $userIdentifier)->first();
-    
+
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found'], 404);
         }
-    
+
         $response = $this->emailVerificationService->execute($user);
         return ApiResponseClass::sendResponse(null, $response['message'], $response['status']);
+    }
+
+    public function user(Request $request)
+    {
+
+        $user = Auth::user();
+        if ($user === null) {
+            return response()->json(['message' => 'User not authenticated'], 401);
+        }
+        return response()->json(new UserResource($user));
     }
 }

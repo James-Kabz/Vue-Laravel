@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Events\UserLoginFailed;
 use App\Exceptions\Custom\EmailAlreadyVerifiedException;
+use App\Exceptions\Custom\EmailNotVerifiedException;
 use App\Exceptions\Custom\UserAuthenticationException;
 use App\Exceptions\Custom\UserAuthorizationException;
 use App\Interfaces\AuthRepositoryInterface;
@@ -81,6 +82,10 @@ class AuthService
             'login_attempts' => 0,
             'blocked' => 'N'
         ]);
+
+        if (!$user->hasVerifiedEmail()) {
+            throw new EmailNotVerifiedException("Please verify your email address.");
+        }
 
         $token = $this->authRepository->generateToken($user);
 

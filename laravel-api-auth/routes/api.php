@@ -8,6 +8,10 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 
+// Route::get('/user', function (Request $request) {
+//     return $request->user();
+// })->middleware('auth:sanctum');
+
 /*
 |--------------------------------------------------------------------------
 | Auth Routes
@@ -16,7 +20,7 @@ use App\Http\Controllers\Auth\PasswordResetController;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login'])->name('login')->middleware('not_blocked');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware(['auth:sanctum', 'last_used_at']);
-
+Route::middleware('auth:sanctum')->get('/user', [AuthController::class, 'user']);
 /*
 |--------------------------------------------------------------------------
 | Email Verification Routes
@@ -48,6 +52,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Users
     Route::apiResource('/users', UserController::class)->middleware('role:admin');
+});
 
     // Roles
     Route::apiResource('/roles', RoleController::class);
@@ -56,4 +61,3 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Permissions
     Route::apiResource('/permissions', PermissionController::class);
-});
