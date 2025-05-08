@@ -147,5 +147,5 @@
 
 <script setup>
 import { LockIcon, ShieldIcon, MailIcon, RefreshCwIcon } from 'lucide-vue-next';
-import Navbar from '../components/layout/Navbar.vue';
+import Navbar from '../components/layout/NavbarComp.vue';
 </script>

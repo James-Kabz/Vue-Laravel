@@ -27,7 +27,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import Navbar from '../components/layout/Navbar.vue';
+import Navbar from '../components/layout/NavbarComp.vue';
 import authStore from '../stores/auth';
 
 const user = ref(authStore.state.user);

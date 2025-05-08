@@ -33,7 +33,7 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $response = $this->authService->login($request->only(['email', 'password']));
-        return ApiResponseClass::sendResponse(['user' => new AuthResource($response['user']),'token' => $response['token'],], 'Login Successful', 200);
+        return ApiResponseClass::sendResponse(['user' => new AuthResource($response['user']), 'token' => $response['token'],], 'Login Successful', 200);
     }
 
 
@@ -66,11 +66,7 @@ class AuthController extends Controller
 
     public function user(Request $request)
     {
-
-        $user = Auth::user();
-        if ($user === null) {
-            return response()->json(['message' => 'User not authenticated'], 401);
-        }
-        return response()->json(new UserResource($user));
+        $user = $this->authService->user();
+        return ApiResponseClass::sendResponse(new UserResource($user), 'User fetched successfully', 200);
     }
 }
