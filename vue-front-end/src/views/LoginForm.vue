@@ -18,14 +18,11 @@
             <ShieldAlertIcon class="h-5 w-5 text-red-400" />
           </div>
           <div class="ml-3">
-            <h3 class="text-sm font-medium text-red-800">Account temporarily blocked</h3>
+            <h3 class="text-sm font-medium text-red-800">Account blocked</h3>
             <div class="mt-2 text-sm text-red-700">
               <p>
-                Your account has been temporarily blocked due to too many failed login attempts.
-                Please try again later or contact support for assistance.
-              </p>
-              <p v-if="blockDuration" class="mt-2">
-                You can try again in {{ blockDuration }}.
+                Your account has been blocked due to too many failed login attempts.
+                Please contact the administrator for assistance.
               </p>
             </div>
           </div>
@@ -36,7 +33,7 @@
       <div v-else-if="needsVerification" class="bg-yellow-50 p-4 rounded-md">
         <div class="flex">
           <div class="flex-shrink-0">
-            <TriangleIcon class="h-5 w-5 text-yellow-400" />
+            <TriangleAlertIcon class="h-5 w-5 text-yellow-400" />
           </div>
           <div class="ml-3">
             <p class="text-sm font-medium text-yellow-800">
@@ -44,11 +41,15 @@
             </p>
             <div class="mt-2">
               <button
-                @click="goToVerificationPending"
+                @click="resendVerificationEmail"
+                :disabled="resendLoading"
                 class="text-sm font-medium text-yellow-800 underline"
               >
-                Resend verification email
+                {{ resendLoading ? 'Sending...' : 'Resend verification email' }}
               </button>
+            </div>
+            <div v-if="resendSuccess" class="mt-2 text-sm text-green-600">
+              Verification email has been sent. Please check your inbox.
             </div>
           </div>
         </div>
@@ -139,9 +140,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { LockIcon, XCircleIcon, TriangleIcon, ShieldAlertIcon } from 'lucide-vue-next';
-
-// import {  Lock,XCircleIcon } from 'lucide-vue-next';
+import { LockIcon, XCircleIcon, ShieldAlertIcon, TriangleAlertIcon } from 'lucide-vue-next';
 import authStore from '../stores/auth';
 
 const router = useRouter();
@@ -149,7 +148,8 @@ const loading = ref(false);
 const errorMessage = ref('');
 const needsVerification = ref(false);
 const userBlocked = ref(false);
-const blockDuration = ref('');
+const resendLoading = ref(false);
+const resendSuccess = ref(false);
 
 const form = reactive({
   email: '',
@@ -163,7 +163,8 @@ onMounted(() => {
   errorMessage.value = '';
   needsVerification.value = false;
   userBlocked.value = false;
-  blockDuration.value = '';
+  resendLoading.value = false;
+  resendSuccess.value = false;
 });
 
 const handleLogin = async () => {
@@ -171,11 +172,9 @@ const handleLogin = async () => {
   errorMessage.value = '';
   needsVerification.value = false;
   userBlocked.value = false;
-  blockDuration.value = '';
 
   try {
     const response = await authStore.login(form);
-    console.log('Login response:', response);
 
     // Redirect based on role
     if (response?.role === 'admin') {
@@ -186,33 +185,19 @@ const handleLogin = async () => {
   } catch (error) {
     console.error('Login error:', error);
 
-    // Check if the user is blocked
-    if (
-      error.response?.status === 429 ||
-      error.response?.data?.message?.includes('blocked') ||
-      error.response?.data?.message?.includes('too many') ||
-      error.response?.data?.message?.includes('attempts')
-    ) {
-      userBlocked.value = true;
+    // Store email for verification resend
+    localStorage.setItem('pendingVerificationEmail', form.email);
 
-      // Try to extract block duration if available
-      const message = error.response?.data?.message || '';
-      const durationMatch = message.match(/try again in (\d+) (seconds|minutes|hours)/i);
-      if (durationMatch) {
-        blockDuration.value = `${durationMatch[1]} ${durationMatch[2]}`;
-      }
+    // Check specific error types based on your backend exceptions
+    if (error.response?.data?.message?.includes('blocked') ||
+        error.response?.data?.message?.includes('Account is blocked')) {
+      userBlocked.value = true;
     }
-    // Check if the error is related to email verification
-    else if (
-      error.response?.status === 403 ||
-      error.response?.status === 500 ||
-      error.response?.data?.message?.includes('verify') ||
-      error.response?.data?.message?.includes('email')
-    ) {
+    else if (error.response?.data?.message?.includes('verify') ||
+             error.response?.data?.message?.includes('Please verify your email')) {
       needsVerification.value = true;
-      // Store the email for the verification page
-      localStorage.setItem('pendingVerificationEmail', form.email);
-    } else {
+    }
+    else {
       errorMessage.value = error.response?.data?.message || error.message || 'Login failed. Please check your credentials.';
     }
   } finally {
@@ -220,7 +205,18 @@ const handleLogin = async () => {
   }
 };
 
-const goToVerificationPending = () => {
-  router.push('/verification-pending');
+const resendVerificationEmail = async () => {
+  resendLoading.value = true;
+  resendSuccess.value = false;
+
+  try {
+    await authStore.resendVerification(form.email);
+    resendSuccess.value = true;
+  } catch (error) {
+    errorMessage.value = error.response?.data?.message || 'Failed to resend verification email.';
+    needsVerification.value = false;
+  } finally {
+    resendLoading.value = false;
+  }
 };
 </script>

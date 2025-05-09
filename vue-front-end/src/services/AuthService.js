@@ -5,7 +5,6 @@ const API_URL = import.meta.env.VITE_LARAVEL_API_URL || 'http://localhost:8000/a
 // Create axios instance with base URL
 const apiClient = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -26,6 +25,14 @@ apiClient.interceptors.response.use(
   response => response,
   error => {
     console.error('API Error:', error.response?.data || error.message);
+
+    // Handle token expiration
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      window.location.href = '/login';
+    }
+
     return Promise.reject(error);
   }
 );
