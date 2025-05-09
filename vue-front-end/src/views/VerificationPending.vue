@@ -86,8 +86,14 @@ const resendVerificationEmail = async () => {
   resendError.value = '';
 
   try {
-    await authStore.resendVerification(email.value);
-    resendSuccess.value = true;
+    const response = await authStore.resendVerification(email.value);
+
+    // Check for success based on your API response format
+    if (response.success) {
+      resendSuccess.value = true;
+    } else {
+      resendError.value = response.message || 'Failed to resend verification email.';
+    }
   } catch (error) {
     resendError.value = error.response?.data?.message || 'Failed to resend verification email. Please try again.';
   } finally {

@@ -85,41 +85,56 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach(async (to,from,next) => {
-  // check if route requires authentication
-
-  if(to.matched.some(record => record.meta.requiresAuth)) {
-    const isAuthenticated = authStore.state.isAuthenticated;
+// Navigation guards
+router.beforeEach(async (to, from, next) => {
+  // Check if route requires authentication
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    const token = localStorage.getItem('token');
+    const isAuthenticated = !!token;
 
     if (!isAuthenticated) {
       next({ name: 'Login' });
     } else {
-      // check if route requires admin role
-      if (to.matched.some(record => record.meta.requiresAdmin)) {
-        const isAdmin = authStore.state.role === 'admin';
-        if (!isAdmin) {
-          next({ name: 'Dashboard' });
+      // Verify token validity by checking auth state
+      try {
+        await authStore.checkAuth();
+
+        // Check if route requires admin role
+        if (to.matched.some(record => record.meta.requiresAdmin)) {
+          const isAdmin = authStore.state.role === 'admin';
+          if (!isAdmin) {
+            next({ name: 'Dashboard' });
+          } else {
+            next();
+          }
         } else {
           next();
         }
-      } else {
-        next();
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        next({ name: 'Login' });
       }
     }
   }
-
-  // check if route requires guest (non-authenticated user)
-  else if (to.matched.some(record =>record.meta.requiresGuest)) {
-    const isAuthenticated = authStore.state.isAuthenticated;
+  // Check if route requires guest (non-authenticated user)
+  else if (to.matched.some(record => record.meta.requiresGuest)) {
+    const token = localStorage.getItem('token');
+    const isAuthenticated = !!token;
 
     if (isAuthenticated) {
-      const isAdmin = authStore.state.role === 'admin';
-      next({name: isAdmin ? 'AdminDashboard' : 'Dashboard'});
+      try {
+        await authStore.checkAuth();
+        const isAdmin = authStore.state.role === 'admin';
+        next({ name: isAdmin ? 'AdminDashboard' : 'Dashboard' });
+      } catch (error) {
+        console.log('Auth check failed:', error);
+        next();
+      }
     } else {
       next();
     }
   } else {
     next();
   }
-})
+});
 export default router

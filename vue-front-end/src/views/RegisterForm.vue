@@ -11,6 +11,17 @@
         </p>
       </div>
 
+      <div v-if="successMessage" class="bg-green-50 p-4 rounded-md">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <CheckCircleIcon class="h-5 w-5 text-green-400" />
+          </div>
+          <div class="ml-3">
+            <p class="text-sm font-medium text-green-800">{{ successMessage }}</p>
+          </div>
+        </div>
+      </div>
+
       <div v-if="errorMessage" class="bg-red-50 p-4 rounded-md">
         <div class="flex">
           <div class="flex-shrink-0">
@@ -98,12 +109,13 @@
 <script setup>
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-import { LockIcon, XCircleIcon } from 'lucide-vue-next';
+import { XCircleIcon, CheckCircleIcon, LockIcon } from 'lucide-vue-next';
 import authStore from '../stores/auth';
 
 const router = useRouter();
 const loading = ref(false);
 const errorMessage = ref('');
+const successMessage = ref('');
 
 const form = reactive({
   name: '',
@@ -115,11 +127,27 @@ const form = reactive({
 const handleRegister = async () => {
   loading.value = true;
   errorMessage.value = '';
+  successMessage.value = '';
 
   try {
     await authStore.register(form);
+
+    // Store email for verification page
     localStorage.setItem('pendingVerificationEmail', form.email);
-    router.push('/verification-pending');
+
+    // Show success message
+    successMessage.value = 'Registration successful! Please check your email to verify your account.';
+
+    // Clear form
+    form.name = '';
+    form.email = '';
+    form.password = '';
+    form.password_confirmation = '';
+
+    // Redirect to verification pending page after a delay
+    setTimeout(() => {
+      router.push('/verification-pending');
+    }, 2000);
   } catch (error) {
     if (error.response?.data?.errors) {
       const errors = error.response.data.errors;
