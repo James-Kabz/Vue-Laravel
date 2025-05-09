@@ -145,7 +145,19 @@
   </div>
 </template>
 
-<script setup>
-import { LockIcon, ShieldIcon, MailIcon, RefreshCwIcon } from 'lucide-vue-next';
-import Navbar from '../components/layout/NavbarComp.vue';
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import Navbar from '@/components/layout/NavbarComp.vue';
+import { UserIcon, ShieldIcon, MailIcon, KeyIcon } from 'lucide-vue-next';
+import authStore from '@/stores/auth';
+
+onMounted(async () => {
+  if (localStorage.getItem('token')) {
+    try {
+      await authStore.checkAuth();
+    } catch (error) {
+      console.error('Failed to check authentication status:', error);
+    }
+  }
+});
 </script>
