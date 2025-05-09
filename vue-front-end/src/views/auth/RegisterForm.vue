@@ -107,56 +107,57 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { XCircleIcon, CheckCircleIcon, LockIcon } from 'lucide-vue-next';
-import authStore from '../stores/auth';
+import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { XCircleIcon, CheckCircleIcon, LockIcon } from 'lucide-vue-next'
+import authStore from '@/stores/auth'
 
-const router = useRouter();
-const loading = ref(false);
-const errorMessage = ref('');
-const successMessage = ref('');
+const router = useRouter()
+const loading = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
 
 const form = reactive({
   name: '',
   email: '',
   password: '',
-  password_confirmation: ''
-});
+  password_confirmation: '',
+})
 
 const handleRegister = async () => {
-  loading.value = true;
-  errorMessage.value = '';
-  successMessage.value = '';
+  loading.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
 
   try {
-    await authStore.register(form);
+    await authStore.register(form)
 
     // Store email for verification page
-    localStorage.setItem('pendingVerificationEmail', form.email);
+    localStorage.setItem('pendingVerificationEmail', form.email)
 
     // Show success message
-    successMessage.value = 'Registration successful! Please check your email to verify your account.';
+    successMessage.value =
+      'Registration successful! Please check your email to verify your account.'
 
     // Clear form
-    form.name = '';
-    form.email = '';
-    form.password = '';
-    form.password_confirmation = '';
+    form.name = ''
+    form.email = ''
+    form.password = ''
+    form.password_confirmation = ''
 
     // Redirect to verification pending page after a delay
     setTimeout(() => {
-      router.push('/verification-pending');
-    }, 2000);
+      router.push('/verification-pending')
+    }, 2000)
   } catch (error) {
     if (error.response?.data?.errors) {
-      const errors = error.response.data.errors;
-      errorMessage.value = Object.values(errors).flat().join('\n');
+      const errors = error.response.data.errors
+      errorMessage.value = Object.values(errors).flat().join('\n')
     } else {
-      errorMessage.value = error.response?.data?.message || 'Registration failed. Please try again.';
+      errorMessage.value = error.response?.data?.message || 'Registration failed. Please try again.'
     }
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 </script>

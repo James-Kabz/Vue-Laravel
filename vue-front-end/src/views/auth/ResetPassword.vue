@@ -3,9 +3,7 @@
     <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
       <div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Reset your password</h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
-          Enter your new password below
-        </p>
+        <p class="mt-2 text-center text-sm text-gray-600">Enter your new password below</p>
       </div>
 
       <div v-if="successMessage" class="bg-green-50 p-4 rounded-md">
@@ -66,7 +64,9 @@
         </div>
 
         <div>
-          <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirm new password</label>
+          <label for="password_confirmation" class="block text-sm font-medium text-gray-700"
+            >Confirm new password</label
+          >
           <div class="mt-1">
             <input
               id="password_confirmation"
@@ -97,53 +97,54 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { CheckCircleIcon, XCircleIcon } from 'lucide-vue-next';
-import authStore from '../stores/auth';
+import { ref, reactive, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { CheckCircleIcon, XCircleIcon } from 'lucide-vue-next'
+import authStore from '@/stores/auth'
 
-const router = useRouter();
-const route = useRoute();
-const loading = ref(false);
-const successMessage = ref('');
-const errorMessage = ref('');
+const router = useRouter()
+const route = useRoute()
+const loading = ref(false)
+const successMessage = ref('')
+const errorMessage = ref('')
 
 const form = reactive({
   token: '',
   email: '',
   password: '',
-  password_confirmation: ''
-});
+  password_confirmation: '',
+})
 
-const token = ref('');
+const token = ref('')
 
 onMounted(() => {
-  token.value = route.params.token || '';
-  form.token = token.value;
-});
+  token.value = route.params.token || ''
+  form.token = token.value
+})
 
 const handleResetPassword = async () => {
-  loading.value = true;
-  errorMessage.value = '';
-  successMessage.value = '';
+  loading.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
 
   try {
-    await authStore.resetPassword(form);
-    successMessage.value = 'Password has been reset successfully!';
+    await authStore.resetPassword(form)
+    successMessage.value = 'Password has been reset successfully!'
 
     // Redirect to login after 3 seconds
     setTimeout(() => {
-      router.push('/login');
-    }, 3000);
+      router.push('/login')
+    }, 3000)
   } catch (error) {
     if (error.response?.data?.errors) {
-      const errors = error.response.data.errors;
-      errorMessage.value = Object.values(errors).flat().join('\n');
+      const errors = error.response.data.errors
+      errorMessage.value = Object.values(errors).flat().join('\n')
     } else {
-      errorMessage.value = error.response?.data?.message || 'Failed to reset password. Please try again.';
+      errorMessage.value =
+        error.response?.data?.message || 'Failed to reset password. Please try again.'
     }
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 </script>

@@ -49,7 +49,6 @@ Route::post('/reset-password', [PasswordResetController::class, 'resetPassword']
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
-
     // Users
     Route::apiResource('/users', UserController::class)->middleware('role:admin');
 });

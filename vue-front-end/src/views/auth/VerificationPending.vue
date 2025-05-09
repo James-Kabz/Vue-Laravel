@@ -3,13 +3,13 @@
     <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-md">
       <div class="text-center">
         <MailIcon class="mx-auto h-12 w-12 text-indigo-600" />
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Please verify your email</h2>
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Please verify your email
+        </h2>
       </div>
 
       <div class="text-center">
-        <p class="mt-2 text-sm text-gray-600">
-          You're almost there! We sent an email to
-        </p>
+        <p class="mt-2 text-sm text-gray-600">You're almost there! We sent an email to</p>
         <p class="font-medium text-indigo-600">{{ email }}</p>
         <p class="mt-2 text-sm text-gray-600">
           Just click on the link in that email to complete your signup.
@@ -64,40 +64,41 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { MailIcon, CheckCircleIcon, XCircleIcon, RefreshCwIcon } from 'lucide-vue-next';
-import authStore from '../stores/auth';
+import { ref, onMounted } from 'vue'
+import { MailIcon, CheckCircleIcon, XCircleIcon, RefreshCwIcon } from 'lucide-vue-next'
+import authStore from '@/stores/auth'
 
-const email = ref('');
-const resendLoading = ref(false);
-const resendSuccess = ref(false);
-const resendError = ref('');
+const email = ref('')
+const resendLoading = ref(false)
+const resendSuccess = ref(false)
+const resendError = ref('')
 
 onMounted(() => {
   // Get the email from localStorage
-  email.value = localStorage.getItem('pendingVerificationEmail') || '';
-});
+  email.value = localStorage.getItem('pendingVerificationEmail') || ''
+})
 
 const resendVerificationEmail = async () => {
-  if (!email.value) return;
+  if (!email.value) return
 
-  resendLoading.value = true;
-  resendSuccess.value = false;
-  resendError.value = '';
+  resendLoading.value = true
+  resendSuccess.value = false
+  resendError.value = ''
 
   try {
-    const response = await authStore.resendVerification(email.value);
+    const response = await authStore.resendVerification(email.value)
 
     // Check for success based on your API response format
     if (response.success) {
-      resendSuccess.value = true;
+      resendSuccess.value = true
     } else {
-      resendError.value = response.message || 'Failed to resend verification email.';
+      resendError.value = response.message || 'Failed to resend verification email.'
     }
   } catch (error) {
-    resendError.value = error.response?.data?.message || 'Failed to resend verification email. Please try again.';
+    resendError.value =
+      error.response?.data?.message || 'Failed to resend verification email. Please try again.'
   } finally {
-    resendLoading.value = false;
+    resendLoading.value = false
   }
-};
+}
 </script>

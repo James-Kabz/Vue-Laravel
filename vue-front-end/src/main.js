@@ -2,7 +2,7 @@ import './assets/main.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import authStore from './stores/auth';
+import authStore from './stores/auth'
 import App from './App.vue'
 import router from './router'
 
@@ -13,13 +13,13 @@ const initApp = async () => {
 
   if (localStorage.getItem('token')) {
     try {
-      await authStore.checkAuth();
+      await authStore.checkAuth()
     } catch (error) {
-      console.error('Failed to check authentication status:', error);
+      console.error('Failed to check authentication status:', error)
     }
   }
 
   app.mount('#app')
 }
 
-initApp();
+initApp()

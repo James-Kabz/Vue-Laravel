@@ -13,7 +13,9 @@
         <div class="flex justify-center">
           <CheckCircleIcon class="h-12 w-12 text-green-500" />
         </div>
-        <h3 class="mt-4 text-lg font-medium text-green-800">Your email has been successfully verified!</h3>
+        <h3 class="mt-4 text-lg font-medium text-green-800">
+          Your email has been successfully verified!
+        </h3>
         <p class="mt-2 text-sm text-green-600">You can now log in to your account.</p>
         <div class="mt-6">
           <button
@@ -51,7 +53,10 @@
                 :disabled="resendLoading"
                 class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                <RefreshCwIcon v-if="resendLoading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" />
+                <RefreshCwIcon
+                  v-if="resendLoading"
+                  class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                />
                 {{ resendLoading ? 'Sending...' : 'Resend Verification Email' }}
               </button>
             </div>
@@ -59,7 +64,9 @@
         </div>
 
         <div v-if="resendSuccess" class="mt-4 bg-green-50 p-4 rounded-md">
-          <p class="text-sm font-medium text-green-800 text-center">Verification email has been resent. Please check your inbox.</p>
+          <p class="text-sm font-medium text-green-800 text-center">
+            Verification email has been resent. Please check your inbox.
+          </p>
         </div>
       </div>
     </div>
@@ -67,63 +74,65 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { CheckCircleIcon, XCircleIcon, RefreshCwIcon } from 'lucide-vue-next';
-import authStore from '../stores/auth';
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { CheckCircleIcon, XCircleIcon, RefreshCwIcon } from 'lucide-vue-next'
+import authStore from '@/stores/auth'
 
-const router = useRouter();
-const route = useRoute();
-const loading = ref(true);
-const verified = ref(false);
-const error = ref('');
-const showResendForm = ref(false);
-const email = ref('');
-const resendLoading = ref(false);
-const resendSuccess = ref(false);
+const router = useRouter()
+const route = useRoute()
+const loading = ref(true)
+const verified = ref(false)
+const error = ref('')
+const showResendForm = ref(false)
+const email = ref('')
+const resendLoading = ref(false)
+const resendSuccess = ref(false)
 
-const id = ref('');
-const token = ref('');
+const id = ref('')
+const token = ref('')
 
 onMounted(async () => {
-  id.value = route.params.id;
-  token.value = route.params.token;
+  id.value = route.params.id
+  token.value = route.params.token
 
   if (!id.value || !token.value) {
-    error.value = 'Invalid verification link.';
-    loading.value = false;
-    showResendForm.value = true;
-    return;
+    error.value = 'Invalid verification link.'
+    loading.value = false
+    showResendForm.value = true
+    return
   }
 
   try {
-    await authStore.verifyEmail(id.value, token.value);
-    verified.value = true;
+    await authStore.verifyEmail(id.value, token.value)
+    verified.value = true
   } catch (err) {
-    error.value = err.response?.data?.message || 'Email verification failed. The link may be expired or invalid.';
-    showResendForm.value = true;
+    error.value =
+      err.response?.data?.message ||
+      'Email verification failed. The link may be expired or invalid.'
+    showResendForm.value = true
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-});
+})
 
 const resendVerification = async () => {
-  if (!email.value) return;
+  if (!email.value) return
 
-  resendLoading.value = true;
-  resendSuccess.value = false;
+  resendLoading.value = true
+  resendSuccess.value = false
 
   try {
-    await authStore.resendVerification(email.value);
-    resendSuccess.value = true;
+    await authStore.resendVerification(email.value)
+    resendSuccess.value = true
   } catch (err) {
-    error.value = err.response?.data?.message || 'Failed to resend verification email.';
+    error.value = err.response?.data?.message || 'Failed to resend verification email.'
   } finally {
-    resendLoading.value = false;
+    resendLoading.value = false
   }
-};
+}
 
 const goToLogin = () => {
-  router.push('/login');
-};
+  router.push('/login')
+}
 </script>
