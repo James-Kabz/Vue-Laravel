@@ -21,7 +21,7 @@ class AuthRepository implements AuthRepositoryInterface
 
         $tokenModel->forceFill([
             'last_used_at' => now(),
-            'expires_at' => now()->addMinutes(15),
+            'expires_at' => now()->addMinutes(30),
         ])->save();
 
         return $token;

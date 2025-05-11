@@ -144,7 +144,7 @@ export default {
    * @returns {Promise}
    */
   getRolePermissions(roleId) {
-    return apiClient.get(`/roles/${roleId}/give-permissions`)
+    return apiClient.get(`/roles/${roleId}/permissions`)
   },
 
   /**

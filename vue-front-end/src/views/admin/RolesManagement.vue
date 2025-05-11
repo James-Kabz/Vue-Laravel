@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 text-black">
     <Navbar />
     <div class="p-6">
       <data-table
@@ -176,16 +176,21 @@ export default {
           search: this.search,
         })
 
-        if (response.data.success) {
-          this.roles = response.data.data.roles || []
-          // Ensure each role has a permissions array
-          this.roles = this.roles.map((role) => ({
-            ...role,
-            permissions: role.permissions || [],
-          }))
-        } else {
-          this.roles = []
+        // Handle both possible response structures
+        let rolesData = []
+        if (response.data && response.data.data && response.data.data.roles) {
+          rolesData = response.data.data.roles
+        } else if (response.data && Array.isArray(response.data)) {
+          rolesData = response.data
         }
+
+        this.roles = rolesData.map(role => ({
+          ...role,
+          permissions: role.permissions || [] // Ensure permissions array exists
+        }))
+
+        this.pagination = response.data.meta || null
+
       } catch (error) {
         console.error('Error fetching roles:', error)
         this.$toast.error('Failed to fetch roles')
@@ -195,7 +200,14 @@ export default {
     async fetchAllPermissions() {
       try {
         const response = await AdminService.getPermissions()
-        this.allPermissions = response.data || []
+        // Handle both possible response structures
+        if (response.data && response.data.success) {
+          this.allPermissions = response.data.data || []
+        } else if (Array.isArray(response.data)) {
+          this.allPermissions = response.data
+        } else {
+          this.allPermissions = []
+        }
       } catch (error) {
         console.error('Error fetching permissions:', error)
         this.$toast.error('Failed to fetch permissions')
@@ -205,19 +217,49 @@ export default {
     async fetchRolePermissions(roleId) {
       try {
         const response = await AdminService.getRolePermissions(roleId)
-        return response.data || []
+
+        // Handle the response structure from your example
+        if (response.data && response.data.success) {
+          if (Array.isArray(response.data.data)) {
+            // Check if permissions are directly in the data array
+            if (response.data.data[0] && response.data.data[0].permissions) {
+              return response.data.data[0].permissions
+            }
+            return response.data.data
+          }
+          return []
+        }
+        return []
       } catch (error) {
-        console.error('Error fetching role permissions:', error)
-        this.$toast.error('Failed to fetch role permissions')
+        console.error(`Error fetching permissions for role ${roleId}:`, error)
+        this.$toast.error(`Failed to fetch permissions for role`)
         return []
       }
     },
-    showPermissionsModal(role) {
-      this.permissionsModal.show = true
-      this.permissionsModal.title = `Manage Permissions for ${role.name}`
-      this.permissionsModal.roleId = role.id
-      this.currentRolePermissions = [...role.permissions]
-      this.selectedPermissions = role.permissions.map((p) => p.id)
+    async showPermissionsModal(role) {
+      try {
+        if (!role?.id) {
+          this.$toast.error('Invalid role data')
+          return
+        }
+
+        this.permissionsModal.show = true
+        this.permissionsModal.title = `Manage Permissions for ${role.name}`
+        this.permissionsModal.roleId = role.id
+
+        // Fetch fresh permissions for this role
+        const permissions = await this.fetchRolePermissions(role.id)
+        console.log('Fetched permissions:', permissions)
+
+        this.currentRolePermissions = permissions || []
+        this.selectedPermissions = permissions.map(p => p.id) || []
+
+        console.log('Current role permissions:', this.currentRolePermissions)
+        console.log('Selected permission IDs:', this.selectedPermissions)
+      } catch (error) {
+        console.error('Error opening permissions modal:', error)
+        this.$toast.error('Failed to load permissions')
+      }
     },
     closePermissionsModal() {
       this.permissionsModal.show = false
